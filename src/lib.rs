@@ -5,7 +5,6 @@ use glyph_brush_layout::{
 };
 use image::{DynamicImage, Rgba};
 use js_sys::Uint8Array;
-// use serde_wasm_bindgen;
 use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -32,55 +31,95 @@ pub enum VerticalAlign {
 
 #[wasm_bindgen]
 pub struct Alignment {
-    pub horizontal: HorizontalAlign,
-    pub vertical: VerticalAlign,
+    horizontal: HorizontalAlign,
+    vertical: VerticalAlign,
 }
 
-#[wasm_bindgen(js_name = createAlignment)]
-pub fn create_alignment(horizontal: HorizontalAlign, vertical: VerticalAlign) -> Alignment {
-    Alignment {
-        horizontal,
-        vertical,
+#[wasm_bindgen]
+impl Alignment {
+    #[wasm_bindgen(constructor)]
+    pub fn new(horizontal: HorizontalAlign, vertical: VerticalAlign) -> Alignment {
+        Alignment {
+            horizontal,
+            vertical,
+        }
     }
 }
 
 #[wasm_bindgen]
-pub struct Dimension(pub i32, pub i32);
-
-#[wasm_bindgen(js_name = createDimension)]
-pub fn create_dimension(width: i32, height: i32) -> Dimension {
-    Dimension(width, height)
+pub struct Dimension {
+    width: i32,
+    height: i32,
 }
 
 #[wasm_bindgen]
-pub struct RgbColor(pub u8, pub u8, pub u8);
-
-#[wasm_bindgen(js_name = createRgbColor)]
-pub fn create_rgb_color(r: u8, g: u8, b: u8) -> RgbColor {
-    RgbColor(r, g, b)
+impl Dimension {
+    #[wasm_bindgen(constructor)]
+    pub fn new(width: i32, height: i32) -> Dimension {
+        Dimension { width, height }
+    }
 }
 
 #[wasm_bindgen]
-pub struct Position(pub i32, pub i32);
+pub struct RgbColor {
+    red: u8,
+    green: u8,
+    blue: u8,
+}
 
-#[wasm_bindgen(js_name = createPosition)]
-pub fn create_position(x: i32, y: i32) -> Position {
-    Position(x, y)
+#[wasm_bindgen]
+impl RgbColor {
+    #[wasm_bindgen(constructor)]
+    pub fn new(red: u8, green: u8, blue: u8) -> RgbColor {
+        RgbColor { red, green, blue }
+    }
+}
+
+#[wasm_bindgen]
+pub struct Position {
+    x: i32,
+    y: i32,
+}
+
+#[wasm_bindgen]
+impl Position {
+    #[wasm_bindgen(constructor)]
+    pub fn new(x: i32, y: i32) -> Position {
+        Position { x, y }
+    }
+}
+
+#[wasm_bindgen]
+pub struct Text {
+    text: String,
+    size: i32,
+    color: RgbColor,
+    font: Uint8Array,
+}
+
+#[wasm_bindgen]
+impl Text {
+    #[wasm_bindgen(constructor)]
+    pub fn new(text: String, size: i32, color: RgbColor, font: Uint8Array) -> Text {
+        Text {
+            text,
+            size,
+            color,
+            font,
+        }
+    }
 }
 
 #[wasm_bindgen]
 pub fn render(
-    text: &str,
-    text_size: i32,
-    text_color: &RgbColor,
-    text_font: Uint8Array,
+    text: &Text,
     size: &Dimension,
     bounds: &Dimension,
     position: &Position,
     alignment: &Alignment,
 ) -> Vec<u8> {
     utils::set_panic_hook();
-    let fonts = vec![Font::from_bytes(text_font.to_vec()).expect("Error constructing Font")];
+    let fonts = vec![Font::from_bytes(text.font.to_vec()).expect("Error constructing Font")];
 
     // create aligned layout. we pattern match our wasm-bindgen alignment enums to those of
     // glyph_brush_layout here.
@@ -95,35 +134,43 @@ pub fn render(
             VerticalAlign::Center => VAlign::Center,
             VerticalAlign::Bottom => VAlign::Bottom,
         });
+
+    // layout glyphs using glyph_brush_layout
     let glyphs = layout.calculate_glyphs(
         &fonts,
         &SectionGeometry {
-            screen_position: (position.0 as f32, position.1 as f32),
-            bounds: (bounds.0 as f32, bounds.1 as f32),
+            screen_position: (position.x as f32, position.y as f32),
+            bounds: (bounds.width as f32, bounds.height as f32),
         },
         &[SectionText {
-            text: text,
-            scale: Scale::uniform(text_size as f32),
+            text: text.text.as_str(),
+            scale: Scale::uniform(text.size as f32),
             font_id: FontId(0),
             color: [0.0, 1.0, 0.0, 1.0],
         }],
     );
 
-    // Create new RGBA image
-    let mut image = DynamicImage::new_rgba8(size.0 as u32, size.1 as u32).to_rgba();
+    // create new RGBA image
+    let mut image = DynamicImage::new_rgba8(size.width as u32, size.height as u32).to_rgba();
 
-    // Draw glyphs
+    // draw glyphs onto image
     for glyph in glyphs {
         if let Some(bounding_box) = glyph.0.pixel_bounding_box() {
             glyph.0.draw(|x, y, v| {
                 image.put_pixel(
                     x + bounding_box.min.x as u32,
                     y + bounding_box.min.y as u32,
-                    Rgba([text_color.0, text_color.1, text_color.2, (v * 255.0) as u8]),
+                    Rgba([
+                        text.color.red,
+                        text.color.green,
+                        text.color.blue,
+                        (v * 255.0) as u8,
+                    ]),
                 )
             });
         }
     }
 
+    // return image
     return image.to_vec();
 }

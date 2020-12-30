@@ -14,27 +14,23 @@ This package layouts text and returns the result as an `UInt8Array` of pixels. I
 The package provides a `render` function that returns an `UInt8Array` of pixels:
 
 ```js
-const fs = requir("fs");
-const path = require("path");
+const { readFileSync } = requir("fs");
+const { join } = require("path");
 const wlt = require("@codepunkt/wasm-layout-text");
 
+const font = readFileSync(join(__dirname, "myfont.ttf"));
+
 const buffer = wlt.render(
-  // text
-  "Hello world",
-  // text size
-  64,
-  // text color
-  wlt.createRgbColor(91, 214, 123),
-  // ttf font buffer
-  fs.readFileSync(path.join(__dirname, "myfont.ttf")),
+  // text, size, color, ttf font buffer
+  new wlt.Text("Hello world", 64, new wlt.RgbColor(91, 214, 123), font),
   // image dimension
-  wtl.createDimension(1200, 630),
+  new wlt.Dimension(1200, 630),
   // text bounds
-  wtl.createDimensions(1100, 530),
+  new wlt.Dimensions(1100, 530),
   // text position
-  wtl.createPosition(50, 50),
+  new wlt.Position(50, 50),
   // text alignment
-  wtl.createAlignment(wtl.HorizontalAlign.Left, wtl.VerticalAlign.Top)
+  new wlt.Alignment(wlt.HorizontalAlign.Left, wlt.VerticalAlign.Top)
 );
 ```
 
@@ -46,7 +42,7 @@ You can then use [Jimp](https://github.com/oliver-moran/jimp) or other image pro
 
 ## Contributing
 
-Contributions are welcome! A JavaScript usage example is available in the `example` directory.
+Contributions are welcome! A JavaScript usage example with Jimp is available in the `example` directory.
 
 There are a few `make` tasks, most notably:
 
