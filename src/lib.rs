@@ -72,12 +72,12 @@ pub fn create_position(x: i32, y: i32) -> Position {
 pub fn render(
     text: &str,
     text_size: i32,
-    text_color: RgbColor,
+    text_color: &RgbColor,
     text_font: Uint8Array,
-    size: Dimension,
-    bounds: Dimension,
-    position: Position,
-    alignment: Alignment,
+    size: &Dimension,
+    bounds: &Dimension,
+    position: &Position,
+    alignment: &Alignment,
 ) -> Vec<u8> {
     utils::set_panic_hook();
     let fonts = vec![Font::from_bytes(text_font.to_vec()).expect("Error constructing Font")];

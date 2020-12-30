@@ -63,19 +63,25 @@ const examples = [
   },
 ]
 
+const color = createRgbColor(90, 212, 112)
+const size = createDimension(width, height)
+const bounds = createDimension(width - padding * 2, height - padding * 2)
+
 ;(async () => {
   for (let { name, position, align } of examples) {
     const buffer = render(
       'Musings about web development and cloud technology.',
       100,
-      createRgbColor(90, 212, 112),
+      color,
       fs.readFileSync(path.join(__dirname, 'OpenSans-Regular.ttf')),
-      createDimension(width, height),
-      createDimension(width - padding * 2, height - padding * 2),
+      size,
+      bounds,
       position,
       align
     )
+
     const image = new Jimp({ data: buffer, width, height })
+
     await image
       .quality(100)
       .writeAsync(path.join(__dirname, `results/${name}.png`))
