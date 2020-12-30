@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+      "be5invis.toml",
+      "christian-kohler.npm-intellisense",
+      "christian-kohler.path-intellisense",
+      "codezombiech.gitignore",
+      "esbenp.prettier-vscode",
+      "rust-lang.rust"
+    ]
+  }
