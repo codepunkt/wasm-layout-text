@@ -14,7 +14,7 @@ This package layouts text and returns the result as an `UInt8Array` of pixels. I
 The package provides a `render` function that returns an `UInt8Array` of pixels:
 
 ```js
-const { readFileSync } = requir("fs");
+const { readFileSync } = require("fs");
 const { join } = require("path");
 const wlt = require("@codepunkt/wasm-layout-text");
 
@@ -26,7 +26,7 @@ const buffer = wlt.render(
   // image dimension
   new wlt.Dimension(1200, 630),
   // text bounds
-  new wlt.Dimensions(1100, 530),
+  new wlt.Dimension(1100, 530),
   // text position
   new wlt.Position(50, 50),
   // text alignment
